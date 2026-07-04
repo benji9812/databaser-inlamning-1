@@ -6,8 +6,8 @@ Samma modell som i `docs/er_diagram.md`:
 
 ```mermaid
 erDiagram
-    ARTIST ||--o{ ALBUM : "has"
-    ALBUM ||--o{ TRACK : "contains"
+    ARTIST ||--o{ ALBUM : "har"
+    ALBUM ||--o{ TRACK : "innehåller"
 
     ARTIST {
         INTEGER artist_id PK
@@ -36,23 +36,23 @@ erDiagram
 
 ## 2. Tabellförklaringar och motiveringar
 
-**Artist** stores artist's identity and metadata. `artist_id` is `INTEGER` for simple, fast key handling. `artist_name` and `country` are `TEXT` since values vary in length. `debut_date` is `DATE` for time-based filtering.
+**Artist** lagrar artistens identitet och metadata. `artist_id` är `INTEGER` för enkel och snabb nyckelhantering. `artist_name` och `country` är `TEXT` eftersom värden varierar i längd. `debut_date` är `DATE` för tidsbaserad filtrering.
 
-**Album** stores releases and links each album to an artist via `artist_id` (FK). `title` and `genre` are `TEXT` since values are free text. `release_date` is `DATE` for sorting and comparing over time.
+**Album** lagrar utgivningar och kopplar varje album till en artist via `artist_id` (FK). `title` och `genre` är `TEXT` eftersom värden är fritext. `release_date` är `DATE` för sortering och jämförelser över tid.
 
-**Track** stores tracks for an album via `album_id` (FK). `duration_seconds` is `INTEGER` since seconds are whole numbers. `rating` is `REAL` for decimal values between 0 and 5. `track_number` is `INTEGER` since track number is ordinal data.
+**Track** lagrar låtar för ett album via `album_id` (FK). `duration_seconds` är `INTEGER` eftersom sekunder är heltal. `rating` är `REAL` för decimalvärden mellan 0 och 5. `track_number` är `INTEGER` eftersom spårnummer är ordinaldata.
 
-`NOT NULL` is used on fields that must exist for the post to be meaningful (e.g. name, title, relationships). `CHECK` is used for quality assurance, e.g. positive track duration and rating within valid range.
+`NOT NULL` används på fält som måste finnas för att posten ska vara meningsfull (t.ex. namn, titel, relationer). `CHECK` används för kvalitetskontroll, t.ex. positiv låtlängd och betyg inom giltigt intervall.
 
 ## 3. Alla SQL-kommandon
 
 ### create_tables.sql
 
 ```sql
--- Enable FK checks in SQLite sessions.
+-- Aktiverar FK-kontroller i SQLite-sessioner.
 PRAGMA foreign_keys = ON;
 
--- Artist stores one row per music artist and acts as the parent entity for albums.
+-- Artist lagrar en rad per musikartist och fungerar som överordnad entitet för album.
 CREATE TABLE IF NOT EXISTS Artist (
     artist_id INTEGER PRIMARY KEY,
     artist_name TEXT NOT NULL,
@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS Artist (
     debut_date DATE NOT NULL
 );
 
--- Album stores releases and links each album to exactly one artist.
+-- Album lagrar utgivningar och kopplar varje album till exakt en artist.
 CREATE TABLE IF NOT EXISTS Album (
     album_id INTEGER PRIMARY KEY,
     artist_id INTEGER NOT NULL,
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS Album (
     FOREIGN KEY (artist_id) REFERENCES Artist(artist_id)
 );
 
--- Track stores songs and links each track to one album while keeping useful metadata.
+-- Track lagrar låtar och kopplar varje låt till ett album samt behåller relevant metadata.
 CREATE TABLE IF NOT EXISTS Track (
     track_id INTEGER PRIMARY KEY,
     album_id INTEGER NOT NULL,
@@ -85,20 +85,20 @@ CREATE TABLE IF NOT EXISTS Track (
 ### insert_data.sql
 
 ```sql
--- Insert artists first because Album depends on Artist via artist_id.
+-- Infoga artister först eftersom Album beror på Artist via artist_id.
 INSERT INTO Artist (artist_id, artist_name, country, debut_date) VALUES
     (1, 'Northern Echo', 'Sweden', '2012-04-19'),
     (2, 'Velvet Circuit', 'UK', '2015-09-02'),
     (3, 'Solar Harbor', 'Canada', '2010-01-14');
 
--- Insert albums second because Track depends on Album and Album depends on Artist.
+-- Infoga album därefter eftersom Track beror på Album och Album beror på Artist.
 INSERT INTO Album (album_id, artist_id, title, release_date, genre) VALUES
     (1, 1, 'Midnight Transit', '2016-03-11', 'Indie Pop'),
     (2, 1, 'Static Horizon', '2019-10-04', 'Synthwave'),
     (3, 2, 'Signal Bloom', '2018-06-22', 'Alternative Rock'),
     (4, 3, 'Tidal Lights', '2021-02-12', 'Dream Pop');
 
--- Insert tracks last because each track must reference an existing album_id.
+-- Infoga låtar sist eftersom varje låt måste referera till ett befintligt album_id.
 INSERT INTO Track (track_id, album_id, title, duration_seconds, rating, track_number) VALUES
     (1, 1, 'City in Reverse', 214, 4.2, 1),
     (2, 1, 'Neon Rainfall', 189, 4.0, 2),
@@ -117,31 +117,31 @@ INSERT INTO Track (track_id, album_id, title, duration_seconds, rating, track_nu
 ### select_basic.sql
 
 ```sql
--- 1) Fetches all artists for a quick overview of basic data.
+-- 1) Hämtar alla artister för en snabb överblick av grunddata.
 SELECT artist_id, artist_name, country, debut_date
 FROM Artist;
 
--- 2) Shows albums released after 2018 to demonstrate WHERE on date.
+-- 2) Visar album släppta efter 2018 för att demonstrera WHERE på datum.
 SELECT album_id, title, release_date
 FROM Album
 WHERE release_date > '2018-12-31';
 
--- 3) Lists tracks sorted from longest to shortest to demonstrate ORDER BY DESC.
+-- 3) Listar låtar sorterade från längst till kortast för att demonstrera ORDER BY DESC.
 SELECT track_id, title, duration_seconds
 FROM Track
 ORDER BY duration_seconds DESC;
 
--- 4) Searches for tracks containing the word "Signal" to demonstrate LIKE matching.
+-- 4) Söker efter låtar som innehåller ordet "Signal" för att demonstrera LIKE-matchning.
 SELECT track_id, title
 FROM Track
 WHERE title LIKE '%Signal%';
 
--- 5) Counts the number of albums per genre to demonstrate GROUP BY without HAVING.
+-- 5) Räknar antalet album per genre för att demonstrera GROUP BY utan HAVING.
 SELECT genre, COUNT(*) AS album_count
 FROM Album
 GROUP BY genre;
 
--- 6) Calculates the average rating per album to compare quality between albums.
+-- 6) Beräknar genomsnittligt betyg per album för att jämföra kvalitet mellan album.
 SELECT album_id, ROUND(AVG(rating), 2) AS average_rating
 FROM Track
 GROUP BY album_id
@@ -151,7 +151,7 @@ ORDER BY average_rating DESC;
 ### select_join.sql
 
 ```sql
--- 1) Joins Artist and Album to show which artist is behind each album.
+-- 1) Sammanfogar Artist och Album för att visa vilken artist som ligger bakom varje album.
 SELECT
     ar.artist_name,
     al.title AS album_title,
@@ -160,7 +160,7 @@ FROM Artist ar
 INNER JOIN Album al ON al.artist_id = ar.artist_id
 ORDER BY ar.artist_name, al.release_date;
 
--- 2) Connects Album and Track to show the track list with album title and track number.
+-- 2) Kopplar Album och Track för att visa låtlista med albumtitel och spårnummer.
 SELECT
     al.title AS album_title,
     tr.track_number,
@@ -170,7 +170,7 @@ FROM Album al
 INNER JOIN Track tr ON tr.album_id = al.album_id
 ORDER BY al.title, tr.track_number;
 
--- 3) Three-way JOIN (Artist -> Album -> Track) for a complete catalog view.
+-- 3) Tredelad JOIN (Artist -> Album -> Track) för en komplett katalogvy.
 SELECT
     ar.artist_name,
     al.title AS album_title,
@@ -186,12 +186,12 @@ ORDER BY ar.artist_name, al.title, tr.track_number;
 ### updates.sql
 
 ```sql
--- Updates release_date after the wrong year was discovered during data input.
+-- Uppdaterar release_date efter att fel år upptäcktes vid datainmatning.
 UPDATE Album
 SET release_date = '2020-10-04'
 WHERE album_id = 2;
 
--- Changes track title after the band released an official "renamed" version.
+-- Ändrar låttitel efter att bandet släppte en officiell "omdöpt" version.
 UPDATE Track
 SET title = 'Afterglow Engine (Rework)'
 WHERE track_id = 6;
@@ -200,18 +200,18 @@ WHERE track_id = 6;
 ### deletes.sql
 
 ```sql
--- Removes a specific track from the catalog after the artist's request for correction.
+-- Tar bort en specifik låt från katalogen efter artistens begäran om korrigering.
 DELETE FROM Track
 WHERE track_id = 7;
 ```
 
-## 4. LINQ comparisons
+## 4. LINQ-jämförelser
 
-LINQ (Language Integrated Query) is C#'s way of writing data queries with strong typing and IntelliSense support. In a .NET application using Entity Framework Core, LINQ expressions are usually translated into SQL and executed by the database. This allows the same filtering, sorting, and grouping logic to be written directly in application code without manually building SQL strings. Developers often choose LINQ for readability, safer refactoring, and better compile-time checks.
+LINQ är C#:s sätt att skriva datafrågor med stark typning och stöd för IntelliSense. I en .NET-applikation som använder Entity Framework Core översätts LINQ-uttryck vanligtvis till SQL och körs av databasen. Det gör att samma logik för filtrering, sortering och gruppering kan skrivas direkt i applikationskoden utan att bygga SQL-strängar manuellt. Utvecklare väljer ofta LINQ för bättre läsbarhet, säkrare refaktorering och bättre kontroller vid kompilering.
 
-### Filter albums released after 2018 (WHERE)
+### Filtrera album släppta efter 2018 (WHERE)
 
-**SQL version**
+**SQL-version**
 
 ```sql
 SELECT album_id, title, release_date
@@ -219,10 +219,10 @@ FROM Album
 WHERE release_date > '2018-12-31';
 ```
 
-**LINQ version**
+**LINQ-version**
 
 ```csharp
-// Fetches albums released after 2018-12-31 and materializes the result.
+// Hämtar album släppta efter 2018-12-31 och materialiserar resultatet.
 using var context = new MusicLibraryContext();
 
 var albumsAfter2018 = context.Albums
@@ -236,11 +236,11 @@ var albumsAfter2018 = context.Albums
     .ToList();
 ```
 
-In SQL, `WHERE` maps directly to `.Where(...)` in LINQ and applies the same filtering logic. The `SELECT` columns map to `.Select(...)`, where we project exactly `AlbumId`, `Title`, and `ReleaseDate`. When `.ToList()` is called, EF Core executes the translated SQL query and materializes the result as a list.
+I SQL motsvarar `WHERE` direkt `.Where(...)` i LINQ och använder samma filtreringslogik. `SELECT`-kolumnerna motsvarar `.Select(...)`, där vi projicerar exakt `AlbumId`, `Title` och `ReleaseDate`. När `.ToList()` anropas kör EF Core den översatta SQL-frågan och materialiserar resultatet som en lista.
 
-### Sort tracks from longest to shortest (ORDER BY DESC)
+### Sortera låtar från längst till kortast (ORDER BY DESC)
 
-**SQL version**
+**SQL-version**
 
 ```sql
 SELECT track_id, title, duration_seconds
@@ -248,10 +248,10 @@ FROM Track
 ORDER BY duration_seconds DESC;
 ```
 
-**LINQ version**
+**LINQ-version**
 
 ```csharp
-// Fetches tracks sorted in descending order by duration in seconds.
+// Hämtar låtar sorterade i fallande ordning efter längd i sekunder.
 using var context = new MusicLibraryContext();
 
 var tracksByLengthDesc = context.Tracks
@@ -265,11 +265,11 @@ var tracksByLengthDesc = context.Tracks
     .ToList();
 ```
 
-`ORDER BY duration_seconds DESC` in SQL maps to `.OrderByDescending(t => t.DurationSeconds)` in LINQ. The sort key is the same field in both versions, but in LINQ it is expressed as a lambda. After sorting, `.Select(...)` shapes the output before `.ToList()` materializes the data.
+`ORDER BY duration_seconds DESC` i SQL motsvarar `.OrderByDescending(t => t.DurationSeconds)` i LINQ. Sorteringsnyckeln är samma fält i båda versionerna, men i LINQ uttrycks den som en lambda. Efter sortering formar `.Select(...)` utdata innan `.ToList()` materialiserar datan.
 
-### Count albums per genre (GROUP BY + COUNT)
+### Räkna album per genre (GROUP BY + COUNT)
 
-**SQL version**
+**SQL-version**
 
 ```sql
 SELECT genre, COUNT(*) AS album_count
@@ -277,10 +277,10 @@ FROM Album
 GROUP BY genre;
 ```
 
-**LINQ version**
+**LINQ-version**
 
 ```csharp
-// Groups albums by genre and counts how many albums each genre has.
+// Grupperar album efter genre och räknar hur många album varje genre har.
 using var context = new MusicLibraryContext();
 
 var albumsPerGenre = context.Albums
@@ -293,16 +293,16 @@ var albumsPerGenre = context.Albums
     .ToList();
 ```
 
-`GROUP BY genre` in SQL maps to `.GroupBy(a => a.Genre)` in LINQ, where each group is represented by `g`. The group column is exposed through `g.Key`, which corresponds to `genre` in the SQL output. The `COUNT(*)` aggregate maps to `g.Count()`, and the result is projected into an object with `Genre` and `AlbumCount`.
+`GROUP BY genre` i SQL motsvarar `.GroupBy(a => a.Genre)` i LINQ, där varje grupp representeras av `g`. Gruppkolumnen exponeras via `g.Key`, vilket motsvarar `genre` i SQL-utdata. Aggregatet `COUNT(*)` motsvarar `g.Count()`, och resultatet projiceras till ett objekt med `Genre` och `AlbumCount`.
 
 ## 5. Säkerhet
 
-Secure access to databases is critical eftersom databasen ofta innehåller kärndata som kunduppgifter, transaktioner eller annan affärskritisk information. Om backend tillåter osäkra frågor kan en angripare läsa, ändra eller radera data med stora konsekvenser för både drift och integritet. Authentication betyder att systemet verifierar vem användaren eller tjänsten faktiskt är, medan authorization avgör vilka resurser och operationer den identiteten får använda. Ett grundskydd är parameteriserade queries, eftersom de separerar data från SQL-logik och minskar risken för SQL injection. Lösenord ska aldrig lagras i klartext utan hash:as med moderna algoritmer och salter, så att läckta databaser inte direkt avslöjar användarkonton. Databasanvändare bör följa minsta privilegieprincipen, exempelvis read-only för rapportering och separata konton för skrivoperationer. Connection strings och hemligheter ska lagras i environment variables eller secrets manager i stället för i källkod och repository.
+Säker åtkomst till databaser är kritisk eftersom databasen ofta innehåller kärndata som kunduppgifter, transaktioner eller annan affärskritisk information. Om serversidan tillåter osäkra frågor kan en angripare läsa, ändra eller radera data med stora konsekvenser för både drift och integritet. Autentisering betyder att systemet verifierar vem användaren eller tjänsten faktiskt är, medan auktorisering avgör vilka resurser och operationer den identiteten får använda. Ett grundskydd är parameteriserade frågor, eftersom de separerar data från SQL-logik och minskar risken för SQL-injektion. Lösenord ska aldrig lagras i klartext utan hash:as med moderna algoritmer och salter, så att läckta databaser inte direkt avslöjar användarkonton. Databasanvändare bör följa minsta privilegieprincipen, exempelvis skrivskyddad åtkomst för rapportering och separata konton för skrivoperationer. Anslutningssträngar och hemligheter ska lagras i miljövariabler eller en hemlighetshanterare i stället för i källkod och kodförråd.
 
 ## 6. Versionshantering – reflektion
 
-Git är viktigt i databasutveckling eftersom schema och queries förändras över tid och behöver vara spårbara. Med meningsfulla commits går det snabbt att förstå varför en viss tabell, constraint eller query ändrades. Vid felaktiga ändringar kan man göra rollback utan att tappa hela projektets historik. I teamarbete gör branches och pull requests att flera utvecklare kan jobba parallellt med migrationer och datalogik utan att skriva över varandra.
+Git är viktigt i databasutveckling eftersom schema och frågor förändras över tid och behöver vara spårbara. Med meningsfulla incheckningar går det snabbt att förstå varför en viss tabell, begränsning eller fråga ändrades. Vid felaktiga ändringar kan man återställa utan att tappa hela projektets historik. I teamarbete gör grenar och sammanslagningsförfrågningar att flera utvecklare kan jobba parallellt med migreringar och datalogik utan att skriva över varandra.
 
 ## 7. Personlig reflektion
 
-Det som gick bäst var att bryta ner arbetet i tydliga steg med separata commits, eftersom det gjorde varje del lättare att verifiera och dokumentera. Det svåraste var att hålla balansen mellan enkel modell och tillräckligt robusta constraints för VG-nivå, särskilt kring datatyper och validering av track-data. Jag märkte också att ordningen mellan insert-operationerna är central när foreign keys används, annars blir det direkt referensfel. Om jag gjorde om arbetet skulle jag lägga till ett separat testskript som kör allt i rätt ordning automatiskt för snabbare validering. Jag skulle även komplettera med fler edge case-data, exempelvis album utan betygsatta tracks, för att stress-testa queryresultaten bättre.
+Det som gick bäst var att bryta ner arbetet i tydliga steg med separata incheckningar, eftersom det gjorde varje del lättare att verifiera och dokumentera. Det svåraste var att hålla balansen mellan enkel modell och tillräckligt robusta begränsningar för VG-nivå, särskilt kring datatyper och validering av låtdata. Jag märkte också att ordningen mellan infogningsoperationerna är central när främmande nycklar används, annars blir det direkt referensfel. Om jag gjorde om arbetet skulle jag lägga till ett separat testskript som kör allt i rätt ordning automatiskt för snabbare validering. Jag skulle även komplettera med fler gränsfallsdata, exempelvis album utan betygsatta låtar, för att stresstesta frågeresultaten bättre.

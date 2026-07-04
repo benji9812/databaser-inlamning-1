@@ -34,6 +34,13 @@ sqlite3 music_library.db
 
 Kör `SELECT`-filerna igen efter `UPDATE`/`DELETE` om du vill se ändrade resultat.
 
+### Kör allt automatiskt
+```bash
+cd sql
+sqlite3 musikbibliotek.db < run_all.sql
+```
+Detta kör samtliga SQL-filer i rätt ordning och bygger upp hela databasen automatiskt.
+
 ### Alternativ 2: DB Browser for SQLite
 
 1. Skapa eller öppna en databasfil (t.ex. `music_library.db`).

@@ -1,0 +1,19 @@
+# SQLite databasfiler som genereras lokalt vid körning
+*.db
+*.sqlite
+*.sqlite3
+# SQLite journalfiler (skapas automatiskt vid transaktioner)
+*.db-journal
+*.db-wal
+*.db-shm
+# Exporterade rapportfiler – ska inte versionshanteras
+*.pdf
+# OS-specifika filer
+.DS_Store
+Thumbs.db
+# Editor-specifika inställningsfiler
+.vscode/
+.zed/
+.idea/
+*.suo
+*.user

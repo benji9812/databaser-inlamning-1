@@ -117,31 +117,31 @@ INSERT INTO Track (track_id, album_id, title, duration_seconds, rating, track_nu
 ### select_basic.sql
 
 ```sql
--- 1) Hämtar alla artister för en snabb översikt av grunddata.
+-- 1) Fetches all artists for a quick overview of basic data.
 SELECT artist_id, artist_name, country, debut_date
 FROM Artist;
 
--- 2) Visar album släppta efter 2018 för att demonstrera WHERE på datum.
+-- 2) Shows albums released after 2018 to demonstrate WHERE on date.
 SELECT album_id, title, release_date
 FROM Album
 WHERE release_date > '2018-12-31';
 
--- 3) Listar tracks sorterade längst till kortast för att demonstrera ORDER BY DESC.
+-- 3) Lists tracks sorted from longest to shortest to demonstrate ORDER BY DESC.
 SELECT track_id, title, duration_seconds
 FROM Track
 ORDER BY duration_seconds DESC;
 
--- 4) Söker fram låtar som innehåller ordet "Signal" för att visa LIKE-matchning.
+-- 4) Searches for tracks containing the word "Signal" to demonstrate LIKE matching.
 SELECT track_id, title
 FROM Track
 WHERE title LIKE '%Signal%';
 
--- 5) Räknar antal album per genre för att visa GROUP BY utan HAVING.
+-- 5) Counts the number of albums per genre to demonstrate GROUP BY without HAVING.
 SELECT genre, COUNT(*) AS album_count
 FROM Album
 GROUP BY genre;
 
--- 6) Beräknar snittbetyg per album för att jämföra kvalitet mellan album.
+-- 6) Calculates the average rating per album to compare quality between albums.
 SELECT album_id, ROUND(AVG(rating), 2) AS average_rating
 FROM Track
 GROUP BY album_id
@@ -151,7 +151,7 @@ ORDER BY average_rating DESC;
 ### select_join.sql
 
 ```sql
--- 1) Kopplar Artist och Album för att visa vilken artist som står bakom varje album.
+-- 1) Joins Artist and Album to show which artist is behind each album.
 SELECT
     ar.artist_name,
     al.title AS album_title,
@@ -160,7 +160,7 @@ FROM Artist ar
 INNER JOIN Album al ON al.artist_id = ar.artist_id
 ORDER BY ar.artist_name, al.release_date;
 
--- 2) Kopplar Album och Track för att visa låtlista med albumtitel och spårnummer.
+-- 2) Connects Album and Track to show the track list with album title and track number.
 SELECT
     al.title AS album_title,
     tr.track_number,
@@ -170,7 +170,7 @@ FROM Album al
 INNER JOIN Track tr ON tr.album_id = al.album_id
 ORDER BY al.title, tr.track_number;
 
--- 3) Tre-vägs JOIN (Artist -> Album -> Track) för en komplett katalogvy.
+-- 3) Three-way JOIN (Artist -> Album -> Track) for a complete catalog view.
 SELECT
     ar.artist_name,
     al.title AS album_title,
@@ -186,12 +186,12 @@ ORDER BY ar.artist_name, al.title, tr.track_number;
 ### updates.sql
 
 ```sql
--- Uppdaterar release_date efter att fel årtal upptäcktes vid datainmatning.
+-- Updates release_date after the wrong year was discovered during data input.
 UPDATE Album
 SET release_date = '2020-10-04'
 WHERE album_id = 2;
 
--- Byter låttitel efter att bandet släppte en officiell "renamed" version.
+-- Changes track title after the band released an official "renamed" version.
 UPDATE Track
 SET title = 'Afterglow Engine (Rework)'
 WHERE track_id = 6;
@@ -200,7 +200,7 @@ WHERE track_id = 6;
 ### deletes.sql
 
 ```sql
--- Tar bort en specifik track från katalogen efter rättighetsförfrågan från artist.
+-- Removes a specific track from the catalog after the artist's request for correction.
 DELETE FROM Track
 WHERE track_id = 7;
 ```

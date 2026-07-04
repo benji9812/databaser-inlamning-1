@@ -36,13 +36,13 @@ erDiagram
 
 ## 2. Tabellförklaringar och motiveringar
 
-**Artist** lagrar artistens identitet och metadata. `artist_id` är `INTEGER` för enkel, snabb nyckelhantering. `artist_name` och `country` är `TEXT` eftersom värdena varierar i längd. `debut_date` är `DATE` för att möjliggöra tidsbaserade filtreringar.
+**Artist** stores artist's identity and metadata. `artist_id` is `INTEGER` for simple, fast key handling. `artist_name` and `country` are `TEXT` since values vary in length. `debut_date` is `DATE` for time-based filtering.
 
-**Album** lagrar utgåvor och kopplar varje album till en artist via `artist_id` (FK). `title` och `genre` är `TEXT` eftersom de är fria textvärden. `release_date` är `DATE` för sortering och jämförelser över tid.
+**Album** stores releases and links each album to an artist via `artist_id` (FK). `title` and `genre` are `TEXT` since values are free text. `release_date` is `DATE` for sorting and comparing over time.
 
-**Track** innehåller låtar för ett album via `album_id` (FK). `duration_seconds` är `INTEGER` eftersom sekunder är heltal. `rating` är `REAL` för decimalvärden mellan 0 och 5. `track_number` är `INTEGER` då spårnummer är ordinaldata.
+**Track** stores tracks for an album via `album_id` (FK). `duration_seconds` is `INTEGER` since seconds are whole numbers. `rating` is `REAL` for decimal values between 0 and 5. `track_number` is `INTEGER` since track number is ordinal data.
 
-`NOT NULL` används på fält som måste finnas för att posten ska vara meningsfull (t.ex. namn, titel, relationer). `CHECK` används för kvalitetssäkring, exempelvis positiv låtlängd och betyg inom giltigt intervall.
+`NOT NULL` is used on fields that must exist for the post to be meaningful (e.g. name, title, relationships). `CHECK` is used for quality assurance, e.g. positive track duration and rating within valid range.
 
 ## 3. Alla SQL-kommandon
 
@@ -205,13 +205,13 @@ DELETE FROM Track
 WHERE track_id = 7;
 ```
 
-## 4. LINQ-jämförelser
+## 4. LINQ comparisons
 
-LINQ (Language Integrated Query) är C#-språkets sätt att skriva frågor mot data med stark typning och IntelliSense-stöd. I en .NET-applikation med Entity Framework Core översätts LINQ-uttryck normalt till SQL som körs i databasen. Det gör att samma filtrering, sortering och gruppering kan uttryckas i applikationskod utan att bygga SQL-strängar manuellt. Många utvecklare väljer LINQ för bättre läsbarhet, refaktor-stöd och lägre risk för fel vid dynamiskt byggda frågor.
+LINQ (Language Integrated Query) is C#'s way of writing data queries with strong typing and IntelliSense support. In a .NET application using Entity Framework Core, LINQ expressions are usually translated into SQL and executed by the database. This allows the same filtering, sorting, and grouping logic to be written directly in application code without manually building SQL strings. Developers often choose LINQ for readability, safer refactoring, and better compile-time checks.
 
-### Filtrera album släppta efter 2018 (WHERE)
+### Filter albums released after 2018 (WHERE)
 
-**SQL-version**
+**SQL version**
 
 ```sql
 SELECT album_id, title, release_date
@@ -219,10 +219,10 @@ FROM Album
 WHERE release_date > '2018-12-31';
 ```
 
-**LINQ-version**
+**LINQ version**
 
 ```csharp
-// Hämtar album med releasedatum efter 2018-12-31 och materialiserar resultatet.
+// Fetches albums released after 2018-12-31 and materializes the result.
 using var context = new MusicLibraryContext();
 
 var albumsAfter2018 = context.Albums
@@ -236,11 +236,11 @@ var albumsAfter2018 = context.Albums
     .ToList();
 ```
 
-I SQL motsvarar `WHERE` direkt `.Where(...)` i LINQ och använder samma filterlogik. `SELECT`-kolumnerna mappas till `.Select(...)` där vi projicerar ut exakt `AlbumId`, `Title` och `ReleaseDate`. När `.ToList()` anropas skickar EF Core frågan till databasen och returnerar resultatet som en lista.
+In SQL, `WHERE` maps directly to `.Where(...)` in LINQ and applies the same filtering logic. The `SELECT` columns map to `.Select(...)`, where we project exactly `AlbumId`, `Title`, and `ReleaseDate`. When `.ToList()` is called, EF Core executes the translated SQL query and materializes the result as a list.
 
-### Sortera låtar från längst till kortast (ORDER BY DESC)
+### Sort tracks from longest to shortest (ORDER BY DESC)
 
-**SQL-version**
+**SQL version**
 
 ```sql
 SELECT track_id, title, duration_seconds
@@ -248,10 +248,10 @@ FROM Track
 ORDER BY duration_seconds DESC;
 ```
 
-**LINQ-version**
+**LINQ version**
 
 ```csharp
-// Hämtar tracks sorterade fallande efter längd i sekunder.
+// Fetches tracks sorted in descending order by duration in seconds.
 using var context = new MusicLibraryContext();
 
 var tracksByLengthDesc = context.Tracks
@@ -265,11 +265,11 @@ var tracksByLengthDesc = context.Tracks
     .ToList();
 ```
 
-`ORDER BY duration_seconds DESC` i SQL mappas till `.OrderByDescending(t => t.DurationSeconds)` i LINQ. Sorteringsnyckeln är samma fält i båda versionerna, men i LINQ anges den som lambda-uttryck. Efter sorteringen används `.Select(...)` för att forma resultatet innan `.ToList()` materialiserar datan.
+`ORDER BY duration_seconds DESC` in SQL maps to `.OrderByDescending(t => t.DurationSeconds)` in LINQ. The sort key is the same field in both versions, but in LINQ it is expressed as a lambda. After sorting, `.Select(...)` shapes the output before `.ToList()` materializes the data.
 
-### Räkna antal album per genre (GROUP BY + COUNT)
+### Count albums per genre (GROUP BY + COUNT)
 
-**SQL-version**
+**SQL version**
 
 ```sql
 SELECT genre, COUNT(*) AS album_count
@@ -277,10 +277,10 @@ FROM Album
 GROUP BY genre;
 ```
 
-**LINQ-version**
+**LINQ version**
 
 ```csharp
-// Grupperar album per genre och räknar antal album i varje grupp.
+// Groups albums by genre and counts how many albums each genre has.
 using var context = new MusicLibraryContext();
 
 var albumsPerGenre = context.Albums
@@ -293,11 +293,11 @@ var albumsPerGenre = context.Albums
     .ToList();
 ```
 
-`GROUP BY genre` i SQL motsvarar `.GroupBy(a => a.Genre)` i LINQ där varje grupp representeras av `g`. Gruppkolumnen läses via `g.Key`, vilket motsvarar `genre` i SQL-resultatet. Aggregatet `COUNT(*)` mappas till `g.Count()`, och resultatet projiceras till ett objekt med `Genre` och `AlbumCount`.
+`GROUP BY genre` in SQL maps to `.GroupBy(a => a.Genre)` in LINQ, where each group is represented by `g`. The group column is exposed through `g.Key`, which corresponds to `genre` in the SQL output. The `COUNT(*)` aggregate maps to `g.Count()`, and the result is projected into an object with `Genre` and `AlbumCount`.
 
 ## 5. Säkerhet
 
-Säker åtkomst till databaser är kritisk eftersom databasen ofta innehåller kärndata som kunduppgifter, transaktioner eller annan affärskritisk information. Om backend tillåter osäkra frågor kan en angripare läsa, ändra eller radera data med stora konsekvenser för både drift och integritet. Authentication betyder att systemet verifierar vem användaren eller tjänsten faktiskt är, medan authorization avgör vilka resurser och operationer den identiteten får använda. Ett grundskydd är parameteriserade queries, eftersom de separerar data från SQL-logik och minskar risken för SQL injection. Lösenord ska aldrig lagras i klartext utan hash:as med moderna algoritmer och salter, så att läckta databaser inte direkt avslöjar användarkonton. Databasanvändare bör följa minsta privilegieprincipen, exempelvis read-only för rapportering och separata konton för skrivoperationer. Connection strings och hemligheter ska lagras i environment variables eller secrets manager i stället för i källkod och repository.
+Secure access to databases is critical eftersom databasen ofta innehåller kärndata som kunduppgifter, transaktioner eller annan affärskritisk information. Om backend tillåter osäkra frågor kan en angripare läsa, ändra eller radera data med stora konsekvenser för både drift och integritet. Authentication betyder att systemet verifierar vem användaren eller tjänsten faktiskt är, medan authorization avgör vilka resurser och operationer den identiteten får använda. Ett grundskydd är parameteriserade queries, eftersom de separerar data från SQL-logik och minskar risken för SQL injection. Lösenord ska aldrig lagras i klartext utan hash:as med moderna algoritmer och salter, så att läckta databaser inte direkt avslöjar användarkonton. Databasanvändare bör följa minsta privilegieprincipen, exempelvis read-only för rapportering och separata konton för skrivoperationer. Connection strings och hemligheter ska lagras i environment variables eller secrets manager i stället för i källkod och repository.
 
 ## 6. Versionshantering – reflektion
 

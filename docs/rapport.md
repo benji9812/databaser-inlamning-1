@@ -207,9 +207,11 @@ WHERE track_id = 7;
 
 ## 4. LINQ-jämförelser
 
-### A) WHERE
+LINQ (Language Integrated Query) är C#-språkets sätt att skriva frågor mot data med stark typning och IntelliSense-stöd. I en .NET-applikation med Entity Framework Core översätts LINQ-uttryck normalt till SQL som körs i databasen. Det gör att samma filtrering, sortering och gruppering kan uttryckas i applikationskod utan att bygga SQL-strängar manuellt. Många utvecklare väljer LINQ för bättre läsbarhet, refaktor-stöd och lägre risk för fel vid dynamiskt byggda frågor.
 
-**SQL**
+### Filtrera album släppta efter 2018 (WHERE)
+
+**SQL-version**
 
 ```sql
 SELECT album_id, title, release_date
@@ -217,19 +219,28 @@ FROM Album
 WHERE release_date > '2018-12-31';
 ```
 
-**LINQ (C#)**
+**LINQ-version**
 
 ```csharp
-var albumsAfter2018 = albums
+// Hämtar album med releasedatum efter 2018-12-31 och materialiserar resultatet.
+using var context = new MusicLibraryContext();
+
+var albumsAfter2018 = context.Albums
     .Where(a => a.ReleaseDate > new DateTime(2018, 12, 31))
-    .Select(a => new { a.AlbumId, a.Title, a.ReleaseDate });
+    .Select(a => new
+    {
+        a.AlbumId,
+        a.Title,
+        a.ReleaseDate
+    })
+    .ToList();
 ```
 
-`WHERE` i SQL mappas direkt till `.Where()` i LINQ. Båda filtrerar mängden innan projection (`SELECT`/`.Select()`). Typningen i C# gör också datumjämförelsen explicit med `DateTime`.
+I SQL motsvarar `WHERE` direkt `.Where(...)` i LINQ och använder samma filterlogik. `SELECT`-kolumnerna mappas till `.Select(...)` där vi projicerar ut exakt `AlbumId`, `Title` och `ReleaseDate`. När `.ToList()` anropas skickar EF Core frågan till databasen och returnerar resultatet som en lista.
 
-### B) ORDER BY
+### Sortera låtar från längst till kortast (ORDER BY DESC)
 
-**SQL**
+**SQL-version**
 
 ```sql
 SELECT track_id, title, duration_seconds
@@ -237,19 +248,28 @@ FROM Track
 ORDER BY duration_seconds DESC;
 ```
 
-**LINQ (C#)**
+**LINQ-version**
 
 ```csharp
-var tracksByLength = tracks
+// Hämtar tracks sorterade fallande efter längd i sekunder.
+using var context = new MusicLibraryContext();
+
+var tracksByLengthDesc = context.Tracks
     .OrderByDescending(t => t.DurationSeconds)
-    .Select(t => new { t.TrackId, t.Title, t.DurationSeconds });
+    .Select(t => new
+    {
+        t.TrackId,
+        t.Title,
+        t.DurationSeconds
+    })
+    .ToList();
 ```
 
-`ORDER BY ... DESC` motsvarar `.OrderByDescending()` i LINQ. Sorteringen sker på samma nyckelkolumn/fält och resultatet kan därefter projiceras till önskad form.
+`ORDER BY duration_seconds DESC` i SQL mappas till `.OrderByDescending(t => t.DurationSeconds)` i LINQ. Sorteringsnyckeln är samma fält i båda versionerna, men i LINQ anges den som lambda-uttryck. Efter sorteringen används `.Select(...)` för att forma resultatet innan `.ToList()` materialiserar datan.
 
-### C) GROUP BY
+### Räkna antal album per genre (GROUP BY + COUNT)
 
-**SQL**
+**SQL-version**
 
 ```sql
 SELECT genre, COUNT(*) AS album_count
@@ -257,19 +277,23 @@ FROM Album
 GROUP BY genre;
 ```
 
-**LINQ (C#)**
+**LINQ-version**
 
 ```csharp
-var albumsPerGenre = albums
+// Grupperar album per genre och räknar antal album i varje grupp.
+using var context = new MusicLibraryContext();
+
+var albumsPerGenre = context.Albums
     .GroupBy(a => a.Genre)
     .Select(g => new
     {
         Genre = g.Key,
         AlbumCount = g.Count()
-    });
+    })
+    .ToList();
 ```
 
-`GROUP BY` i SQL motsvarar `.GroupBy()` i LINQ, där `g.Key` motsvarar gruppkolumnen. Aggregatfunktionen `COUNT(*)` mappas till `.Count()` på varje grupp.
+`GROUP BY genre` i SQL motsvarar `.GroupBy(a => a.Genre)` i LINQ där varje grupp representeras av `g`. Gruppkolumnen läses via `g.Key`, vilket motsvarar `genre` i SQL-resultatet. Aggregatet `COUNT(*)` mappas till `g.Count()`, och resultatet projiceras till ett objekt med `Genre` och `AlbumCount`.
 
 ## 5. Säkerhet
 
